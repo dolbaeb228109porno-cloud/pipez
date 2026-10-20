@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZPD: НОЧЬ ВОЯ 03:33</title>
+<style>
+:root{
+  --bg:#020202; --panel:#07070a;
+  --text:#c9c9c9; --muted:#666; --red:#ff3333;
+  --green:#00ff41; --amber:#ffb000; --blue:#00e5ff;
+  --line:#1a1a24; --san:0;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Courier New', Courier, monospace;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-image: radial-gradient(circle at 50% 0%, #0a0f14 0%, #000 100%);
+  text-shadow: 0 0 3px rgba(201, 201, 201, 0.4);
+  transition: background 2s, color 2s;
+}
+body.horror-mode {
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(20, 0, 0, 0.9) 0%, #0a0000 100%),
+    repeating-linear-gradient(45deg, rgba(255,0,0,0.05) 0px, rgba(255,0,0,0.05) 2px, transparent 2px, transparent 20px),
+    repeating-linear-gradient(-45deg, rgba(255,0,0,0.05) 0px, rgba(255,0,0,0.05) 2px, transparent 2px, transparent 20px);
+  background-size: cover, 100px 100px, 100px 100px;
+  color: #ffcccc;
+  animation: bgPulse 4s infinite alternate;
+}
+@keyframes bgPulse { 0% { background-color: #0a0000; } 100% { background-color: #1a0000; } }
+body.horror-mode .panel { border-color: #550000; box-shadow: 0 0 25px rgba(255, 0, 0, 0.2); background: rgba(10, 0, 0, 0.8); }
+body.horror-mode h2 { color: var(--red); }
+
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:9998;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.5) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 4px, 6px 100%;
+  opacity: 0.7;
+}
+#vignette{
+  position:fixed; inset:0; pointer-events:none; z-index:9997;
+  background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(110,0,0,calc(var(--san) * 0.85)) 100%);
+  transition: background 1s;
+}
+@keyframes bloodPulse {
+  0% { box-shadow: inset 0 0 0 0 rgba(255, 0, 0, 0); }
+  50% { box-shadow: inset 0 0 150px 40px rgba(255, 0, 0, 0.6); }
+  100% { box-shadow: inset 0 0 0 0 rgba(255, 0, 0, 0); }
+}
+body.error-pulse::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999; animation: bloodPulse 1s; }
+@keyframes flickerAnim { 0%,100%{opacity:1} 20%{opacity:.25} 40%{opacity:.9} 60%{opacity:.15} 80%{opacity:.8} }
+body.flicker .wrap { animation: flickerAnim 0.3s; }
+@keyframes jitter { 0%{transform:translate(0,0)} 25%{transform:translate(1px,-1px)} 50%{transform:translate(-1px,1px)} 75%{transform:translate(1px,1px)} 100%{transform:translate(0,0)} }
+body.sanity-3 .wrap { animation: jitter 0.15s infinite; }
+body.sanity-2 h2 { text-shadow: 2px 0 rgba(255,0,0,.6), -2px 0 rgba(0,229,255,.5); }
+
+@keyframes glitch {
+  0% { text-shadow: 2px 0 var(--red), -2px 0 var(--blue); transform: translate(1px, 1px); }
+  25% { text-shadow: -2px 0 var(--red), 2px 0 var(--blue); transform: translate(-1px, -1px); }
+  50% { text-shadow: 2px 0 var(--red), -2px 0 var(--blue); transform: translate(1px, -1px); }
+  75% { text-shadow: -2px 0 var(--red), 2px 0 var(--blue); transform: translate(-1px, 1px); }
+  100% { text-shadow: 2px 0 var(--red), -2px 0 var(--blue); transform: translate(1px, 1px); }
+}
+.glitch-text { animation: glitch 0.3s infinite; color: #fff; }
+
+body.calm.flicker .wrap, body.calm.sanity-3 .wrap, body.calm .glitch-text, body.calm.horror-mode { animation: none; }
+body.calm.error-pulse::after { animation: none; }
+body.calm #scare .scare-eyes, body.calm #scare .scare-text, body.calm #scare { animation: none; }
+
+.wrap{max-width:950px;margin:0 auto;padding:20px 15px 80px}
+header{
+  border-bottom:2px solid var(--line); padding-bottom:15px; margin-bottom: 15px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+}
+h1{font-size:22px; margin:0; color:var(--green); letter-spacing:2px;}
+body.horror-mode h1 { color: var(--red); text-shadow: 0 0 10px rgba(255,0,0,0.5); }
+.hud{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.timer-box{
+  background:#1a0505; border:1px solid var(--red); padding:8px 15px;
+  color:var(--red); font-weight:bold; font-size:16px; border-radius:2px;
+}
+.timer-box span{ color:#fff; }
+.timer-box.danger { animation: pulseDanger 0.5s infinite; }
+@keyframes pulseDanger { 0% { background:#1a0505; } 50% { background:#ff0000; color:#000; } 100% { background:#1a0505; } }
+.sanity-box{
+  border:1px solid #6a4a00; background:#120c00; padding:6px 12px; color:var(--amber);
+  font-size:13px; font-weight:bold; min-width:170px;
+}
+.san-track{ height:6px; background:#222; margin-top:4px; }
+#san-fill{ height:100%; width:0%; background:var(--amber); transition:width .5s, background .5s; }
+.mute-btn{ background:#050505; border:1px solid #444; color:#aaa; padding:8px 10px; font-family:inherit; cursor:pointer; }
+.mute-btn:hover{ border-color:var(--green); color:var(--green); }
+
+#dossier{
+  position:sticky; top:0; z-index:60; display:flex; flex-wrap:wrap; gap:6px;
+  background:rgba(2,2,2,.92); padding:8px 0; margin-bottom:15px; border-bottom:1px solid var(--line);
+}
+.chip{ font-size:11px; border:1px dashed #333; padding:3px 8px; color:#555; }
+.chip b{ color:#777; font-weight:normal; margin-right:4px; }
+.chip.got{ border:1px solid var(--green); color:var(--green); }
+.chip.got b{ color:#0a8a2a; }
+body.horror-mode .chip.got{ border-color:var(--red); color:var(--red); }
+body.horror-mode .chip.got b{ color:#992222; }
+
+.panel{
+  background:var(--panel); border:1px solid var(--line);
+  padding:20px; margin-bottom:25px; border-radius:4px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.9);
+  transition: opacity 0.4s, filter 0.4s;
+}
+.locked{display:none;}
+.solved { opacity: 0.15; filter: grayscale(100%) blur(1px); pointer-events: none; border-color: #000; }
+h2{font-size:18px; color:var(--amber); margin-top:0; border-bottom:1px dashed #333; padding-bottom:10px;}
+p{margin:10px 0; font-size:14px;}
+input{
+  background:#000; color:var(--green); border:1px solid #333;
+  padding:12px; font-family:inherit; font-size:16px; width:100%; max-width:350px;
+  outline:none; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px;
+}
+body.horror-mode input { border-color: #550000; color: var(--red); }
+input:focus{border-color:var(--green); box-shadow:0 0 10px rgba(0,255,65,0.3);}
+body.horror-mode input:focus { border-color: var(--red); box-shadow:0 0 10px rgba(255,0,0,0.5); }
+input:disabled { border-color: #111; color: #444; }
+button.main-btn{
+  background:#050505; color:var(--green); border:1px solid var(--green); padding:12px 25px;
+  font-family:inherit; font-size:14px; cursor:pointer; transition:0.2s; text-transform:uppercase;
+  letter-spacing:1px; box-shadow: 0 0 5px rgba(0,255,65,0.2);
+}
+button.main-btn:hover{background:var(--green); color:#000; box-shadow: 0 0 15px rgba(0,255,65,0.6);}
+button.main-btn:disabled{ opacity:.4; cursor:default; }
+body.horror-mode button.main-btn { color: var(--red); border-color: var(--red); box-shadow: 0 0 5px rgba(255,0,0,0.2); }
+body.horror-mode button.main-btn:hover { background: var(--red); color: #000; box-shadow: 0 0 15px rgba(255,0,0,0.6); }
+.msg{font-size:13px; margin-top:15px; min-height:20px; font-weight:bold;}
+.msg.ok{color:var(--green); text-shadow: 0 0 5px rgba(0,255,65,0.5);}
+.msg.bad{color:var(--red); text-shadow: 0 0 5px rgba(255,0,0,0.5);}
+
+.log-box{
+  background:#020202; border-left:3px solid var(--blue); padding:15px;
+  font-family: 'Courier New', Courier, monospace; font-size:13px; white-space:pre-wrap;
+  margin:15px 0; color:#aaa; border-radius:2px; overflow-x: auto;
+}
+body.horror-mode .log-box { border-left-color: var(--red); background: #050000; color: #ffaaaa; }
+.log-box.green { border-left-color: var(--green); color: var(--green); }
+.log-box.red { border-left-color: var(--red); color: #ff8888; }
+.d-flex{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+.guide-btn {
+  background: transparent; color: var(--amber); border: 1px dashed var(--amber);
+  padding: 5px 10px; font-size: 12px; cursor: pointer; margin: 10px 8px 0 0; font-family: inherit;
+}
+.guide-btn:hover { background: rgba(255, 176, 0, 0.1); }
+.guide-btn.hint-btn{ color:#ff7755; border-color:#ff7755; }
+.inline-guide {
+  display: none; margin-top: 10px; border: 1px solid var(--amber);
+  padding: 15px; background: rgba(255,176,0,0.05); font-size: 13px; color: #ccc;
+  line-height: 1.5;
+}
+
+#floating-alerts { position: fixed; top: 80px; right: 20px; z-index: 10001; display: flex; flex-direction: column; gap: 10px; pointer-events: none; max-width: 80vw; }
+.floating-alert {
+  background: rgba(255, 0, 0, 0.15); border: 1px solid var(--red); color: var(--red);
+  padding: 10px 15px; font-size: 12px; font-weight: bold;
+  animation: alertSlide 0.3s forwards, alertFade 0.5s 2.5s forwards;
+  box-shadow: 0 0 10px rgba(255,0,0,0.3);
+}
+@keyframes alertSlide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes alertFade { to { opacity: 0; } }
+
+.eyes{ position:fixed; z-index:10002; display:flex; gap:14px; pointer-events:none; animation: eyesLife 1.6s forwards; }
+.eye{ width:30px; height:13px; border-radius:50%; background:#ffcc00; box-shadow:0 0 14px #ff9900, 0 0 30px #ff6600; position:relative; }
+.eye::after{ content:""; position:absolute; left:50%; top:0; width:4px; height:100%; margin-left:-2px; background:#000; border-radius:50%; }
+@keyframes eyesLife { 0%{opacity:0} 15%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
+
+#scare{
+  position:fixed; inset:0; background:#000; z-index:20000; display:none;
+  flex-direction:column; align-items:center; justify-content:center;
+}
+#scare.show{ display:flex; animation: scareShake .08s infinite; }
+@keyframes scareShake { 0%{transform:translate(0,0)} 25%{transform:translate(-8px,6px)} 50%{transform:translate(8px,-6px)} 75%{transform:translate(-6px,-8px)} 100%{transform:translate(0,0)} }
+.scare-eyes{ display:flex; gap:12vw; margin-bottom:6vh; animation: scareEyes .4s infinite alternate; }
+.scare-eyes .eye{ width:22vw; max-width:200px; height:9vw; max-height:80px; background:#ffe400; box-shadow:0 0 60px #ff8800, 0 0 140px #ff2200; }
+.scare-eyes .eye::after{ width:3vw; max-width:26px; margin-left:-1.5vw; }
+@keyframes scareEyes { from{ opacity:.7; transform:scale(1)} to{ opacity:1; transform:scale(1.12)} }
+.scare-text{ color:#f00; font-size:9vw; font-weight:bold; letter-spacing:.4vw; text-shadow:0 0 30px #f00; text-align:center; padding:0 10px; }
+
+#boss-arena {
+  width: 100%; min-height: 420px; background: #050000; border: 2px solid #550000;
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin: 20px 0; padding: 15px 8px; box-shadow: inset 0 0 50px rgba(255,0,0,0.2); overflow: hidden;
+}
+#boss-arena.hit{ animation: arenaHit .35s; }
+@keyframes arenaHit { 0%{ box-shadow: inset 0 0 120px 30px rgba(255,0,0,.8); } 100%{ box-shadow: inset 0 0 50px rgba(255,0,0,0.2);} }
+.phase-title { font-size: 20px; color: var(--red); margin-bottom: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; text-align: center;}
+.phase-desc { color: #888; margin-bottom: 20px; text-align: center; max-width: 600px; font-size: 14px;}
+
+.hp-container { width: 90%; max-width: 600px; display: flex; flex-direction: column; gap: 10px; margin: 0 auto 10px; }
+.hp-bar { display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: bold; text-transform: uppercase; }
+.hp-track { flex-grow: 1; height: 15px; background: #111; margin-left: 15px; border: 1px solid #333; position: relative; overflow: hidden; }
+.hp-fill { height: 100%; width: 100%; transition: width 0.2s; }
+.hp-fill.boss { background: var(--red); box-shadow: 0 0 10px var(--red); }
+.hp-fill.player { background: var(--green); box-shadow: 0 0 10px var(--green); }
+
+#frag-slots{ display:flex; gap:8px; justify-content:center; margin:10px 0 0; }
+.frag{ width:38px; height:44px; border:1px solid #550000; color:var(--red); font-size:24px; font-weight:bold; display:flex; align-items:center; justify-content:center; background:#0a0000; }
+.frag.on{ border-color:var(--green); color:var(--green); box-shadow:0 0 10px rgba(0,255,65,.4); }
+
+#grid-memory { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: min(300px, 86vw); aspect-ratio: 1/1; margin-bottom: 20px; }
+.grid-cell { background: #111; border: 1px solid #333; cursor: pointer; transition: 0.1s; }
+.grid-cell.active { background: var(--red); box-shadow: 0 0 15px var(--red); }
+
+#num-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: min(320px, 88vw); aspect-ratio: 1/1; margin-bottom: 20px; }
+.num-btn { background: #111; border: 1px solid var(--red); color: var(--red); font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; font-family: inherit; user-select: none; }
+.num-btn:hover { background: #222; }
+.num-btn:active { transform: scale(0.95); }
+.num-btn.empty { visibility:hidden; pointer-events:none; }
+
+#packet-arena {
+  position: relative; width: 100%; max-width: 600px; height: 300px;
+  border: 1px solid #550000; background: #000; overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(255,0,0,0.1); cursor: crosshair;
+}
+.packet {
+  position: absolute; padding: 4px 10px; font-size: 13px; font-weight: bold;
+  user-select: none; cursor: pointer; border: 1px solid; background: rgba(0,0,0,0.8); transition: transform 0.1s;
+}
+.packet:active { transform: scale(0.9); }
+.packet.target { color: var(--green); border-color: var(--green); box-shadow: 0 0 10px rgba(0,255,65,0.3); }
+.packet.fake { color: var(--red); border-color: var(--red); box-shadow: 0 0 10px rgba(255,0,0,0.3); }
+
+#qte-input-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+#qte-target{ font-size: 36px; color: var(--red); font-weight: bold; letter-spacing: 8px; }
+#qte-timer-bar { width: min(300px, 80vw); height: 10px; background: #333; margin-top: 10px; }
+#qte-timer-fill { height: 100%; background: var(--red); width: 100%; transition: width 0.1s linear; }
+
+#charge-track{ position:relative; width:min(420px, 90vw); height:46px; border:2px solid var(--red); background:#000; margin-bottom:20px; overflow:hidden; }
+#charge-zone{ position:absolute; top:0; height:100%; background:rgba(0,255,65,.3); border-left:2px solid var(--green); border-right:2px solid var(--green); }
+#charge-bar{ position:absolute; left:0; top:0; height:100%; width:0%; background:rgba(255,0,0,.55); }
+#charge-btn{ width: 220px; height: 60px; border: 2px solid var(--red); background: #111; color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; user-select: none; font-family:inherit; touch-action:none; }
+
+.popup{ position:absolute; z-index:30; background:#220000; border:2px solid var(--red); padding:10px 14px; text-align:center; box-shadow:0 0 25px rgba(255,0,0,.7); animation: popIn .15s; }
+.popup div{ color:#fff; font-weight:bold; font-size:13px; margin-bottom:8px; }
+@keyframes popIn{ from{ transform:scale(.4);} to{ transform:scale(1);} }
+
+#start-screen {
+  position: fixed; inset: 0; background: #000; z-index: 10000;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 20px; text-align: center; overflow-y: auto;
+}
+#start-screen h1 { color: var(--red); font-size: 30px; margin-bottom: 10px; letter-spacing: 5px; text-shadow: 0 0 20px rgba(255,0,0,0.5);}
+#start-screen p { color: #aaa; max-width: 640px; margin-bottom: 18px; font-size:15px; line-height:1.8;}
+#start-screen .warn{ color:#aa7700; font-size:12px; }
+#start-screen button.main-btn { font-size: 20px; padding: 15px 50px; border-color: var(--red); color: var(--red); background: #110000; font-weight:bold; letter-spacing:3px; cursor:pointer; }
+#start-screen button.main-btn:hover { background: var(--red); color: #000; box-shadow: 0 0 30px rgba(255,0,0,0.8);}
+#start-screen label{ color:#888; font-size:13px; cursor:pointer; margin-bottom:20px; display:block; }
+</style>
+</head>
+<body>
+
+<div id="vignette"></div>
+
+<div id="scare">
+  <div class="scare-eyes"><span class="eye"></span><span class="eye"></span></div>
+  <div class="scare-text" id="scare-text">ТЫ СТАЛ ДИКИМ</div>
+</div>
+
+<div id="start-screen">
+  <h1>ZPD // НОЧЬ ВОЯ</h1>
+  <p>Если ты это читаешь, значит я ещё не сдох. Три тридцать три ночи, участок пустой, какой-то урод вынес из хранилища луковицы «Ночного Воя» и пустил газ по вентиляции. Джуди и Ник сидят в подвале архива, Даг пропал нахрен, а те, кто надышался, уже не совсем звери. Они ходят по этажам и нюхают воздух. <b style="color:#f33">Дикие</b>, блин.<br><br>Вирус сожрал почти все файлы, но кое-что я успел вытащить и накидал тебе заметки. Воздуха минут на сорок пять. Каждая ошибка — минус минута и кусок твоей башки. Я уже проверил на себе, у меня руки трясутся.</p>
+  <p class="warn">⚠ Тут резкие звуки, мерцание и всякая жуть. Лучше в наушниках и в темноте, но если вспышки плохо заходят — поставь галку ниже.</p>
+  <label><input type="checkbox" id="calm-toggle" style="width:auto;margin:0 6px 0 0;"> Режим без вспышек и тряски</label>
+  <button class="main-btn" onclick="startGame()">ВЗЛОМАТЬ СИСТЕМУ</button>
+</div>
+
+<div class="wrap" id="game-container" style="display:none;">
+
+  <header id="main-header">
+    <h1>[ ТЕРМИНАЛ ZPD ]</h1>
+    <div class="hud">
+      <div class="sanity-box">РАССУДОК: <span id="san-val">0%</span><div class="san-track"><div id="san-fill"></div></div></div>
+      <div class="timer-box" id="timer-box">КИСЛОРОД: <span id="timer">45:00</span></div>
+      <button class="mute-btn" id="mute-btn" onclick="toggleMute()" title="Звук">♪</button>
+    </div>
+  </header>
+
+  <div id="dossier"></div>
+
+  <div id="levels"></div>
+
+  <!-- БОСС -->
+  <section class="panel locked" id="actBoss">
+    <h2>УРОВЕНЬ 7: ЯДРО «НОЧНОГО ВОЯ»</h2>
+    <p style="color:var(--red); font-weight:bold;">Вирус захватил терминал. Кажется, эта тварь видит тебя через экран.</p>
+    <p>Пять секторов защиты. Взломаешь сектор — получишь одну букву ключа ядра, запоминай. Ошибёшься — терминал получает по морде. А иногда вирус сам швыряет в тебя окно: закрывай быстро, пока оно не снесло защиту.</p>
+
+    <div class="hp-container">
+      <div class="hp-bar">
+        <span>ЯДРО ВИРУСА</span>
+        <div class="hp-track"><div class="hp-fill boss" id="boss-hp" style="width: 100%"></div></div>
+      </div>
+      <div class="hp-bar">
+        <span>ЗАЩИТА</span>
+        <div class="hp-track"><div class="hp-fill player" id="player-hp" style="width: 100%"></div></div>
+      </div>
+      <div id="frag-slots"></div>
+    </div>
+
+    <div id="boss-arena">
+      <div id="start-boss-btn" style="text-align:center;">
+        <button class="main-btn" onclick="startBossFight()">ЗАПУСТИТЬ ВЗЛОМ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ФИНАЛ -->
+  <section class="panel locked" id="act7">
+    <h2>ФИНАЛ: ПОЛНЫЙ СБРОС</h2>
+    <p>Ядро убито. Осталось сбросить всё нахрен: введи все найденные фрагменты через дефис. Протокол читает их с конца: сначала тот, что нашёл последним, и так до первого. Всё лежит в досье наверху, не тупи.</p>
+
+    <div class="log-box" style="border-color:var(--green); text-align:center; color:var(--green); font-size: 13px;">
+ПОРЯДОК: [ЯДРО]-[ФР.6]-[ФР.5]-[ФР.4]-[ФР.3]-[ФР.2]-[ФР.1]
+    </div>
+
+    <div class="d-flex">
+      <input id="inFinal" placeholder="ВВЕДИ КОМАНДУ..." autocomplete="off" style="max-width:520px;">
+      <button class="main-btn" id="finalBtn" onclick="checkFinal()" style="border-color:var(--green); color:var(--green);">ОСТАНОВИТЬ</button>
+    </div>
+    <div class="msg" id="msgFinal"></div>
+
+    <div id="goodEnd" style="display:none; margin-top:20px; border:1px solid var(--green); padding:20px; background:rgba(0,255,65,0.05);">
+      <h2 style="color:var(--green); margin-top:0;">СИСТЕМА РАЗБЛОКИРОВАНА</h2>
+      <p>Вентиляция с грохотом сдохла. Сладкий запах цветов потянуло наружу, воздух снова стал просто воздухом. В архиве щёлкнули замки.</p>
+      <p>Рация зашипела, и Ник сказал: «Эй, дежурный, мы живы. Даг нашёлся, перепуганный, но целый. Дюка уже тащат в камеру. Хорошо сработал».</p>
+      <p>Ты наконец выдохнул. Выжил, сука.</p>
+      <p id="ps" style="display:none; color:var(--red); border-top:1px dashed #550000; padding-top:14px;">
+        [ЛОГ КАМЕРЫ 13 · 03:33:00]<br>
+        В кадре никого. Но запись показывает, как дверь подвала открывается… изнутри.<br>
+        И кто-то очень тихо, очень близко от микрофона говорит: «Спасибо, что остановил газ. Теперь мы можем говорить».
+      </p>
+    </div>
+  </section>
+
+  <!-- ЛОУЗ -->
+  <section class="panel" id="timeout" style="display:none; border-color:var(--red); background:#1a0000;">
+    <h2 style="color:var(--red); margin-top:0; font-size:24px;">ОХОТА ЗАКОНЧЕНА</h2>
+    <p id="death-text"></p>
+    <p style="color:var(--red); font-weight:bold; margin-top:20px;">Ты стал одним из диких. Игра окончена.</p>
+    <button class="main-btn" onclick="location.reload()" style="margin-top:20px;">ПЕРЕЗАПУСТИТЬ</button>
+  </section>
+
+</div>
+
+<div id="floating-alerts"></div>
+
+<script>
+// ===================== ДАННЫЕ УРОВНЕЙ =====================
+const LEVELS = [
+ {
+  id:'act1', tag:'ДАМП',
+  title:'УРОВЕНЬ 1: ДАМП ПАМЯТИ',
+  intro:'Вирус сожрал почти всю память, но кусок я успел выдрать. Пароль от базы разбит на осколки, и всё это в HEX, потому что вирус — мудак. Осколки помечены P1, P2, P3. Строка XX — это он подсунул фальшивку, на неё забей. Пароль вводи слитно, без двоеточий и дефисов.',
+  body:`<div class="log-box">
+0x0000: 58 58 3A 46 41 4B 45 39 39
+0x0010: 50 32 3A 37 37 33 34
+0x0020: 50 33 3A 45 4E 44
+0x0030: 50 31 3A 4E 49 47 48 54
+</div>`,
+  ph:'ПАРОЛЬ...', btn:'ИЗВЛЕЧЬ',
+  answers:['NIGHT7734'], canon:'NIGHT7734',
+  guideTitle:'[ МОИ ЗАМЕТКИ: HEX ]',
+  guide:`<b>HEX → символ:</b><br>
+   41=A 42=B 43=C 44=D 45=E 46=F 47=G 48=H 49=I 4A=J 4B=K 4C=L 4D=M<br>
+   4E=N 4F=O 50=P 51=Q 52=R 53=S 54=T 55=U 56=V 57=W 58=X 59=Y 5A=Z<br>
+   30=0 31=1 32=2 33=3 34=4 35=5 36=6 37=7 38=8 39=9 3A=«:»`,
+  hint:'Каждая строка — отдельный кусок. P1 — слово, P2 — число, P3:END просто значит «конец». Склей P1 и P2, не тупи.',
+  ok:'Есть доступ к базе.',
+  bad:'Мимо. Проверь, все ли строки ты расшифровал.'
+ },
+ {
+  id:'act2', tag:'ВИНОВНЫЙ',
+  title:'УРОВЕНЬ 2: КТО ОТКРЫЛ ВЕНТИЛЯЦИЮ?',
+  intro:'Камеры стёрты нахрен, остались только записи допросов. Подозреваемых четверо, и ровно один из них говорит правду, остальные врут. Кто открыл вентиляцию, сука? Имя пиши по-английски, как в досье.',
+  body:`<div class="log-box red">
+[ПОКАЗАНИЯ]
+DUKE (Дюк Уизелтон):  «Это сделал не я.»
+BELLWETHER (Беллуэзер): «Это сделал Даг.»
+DOUG (Даг):            «Это сделал Лайонхарт.»
+LIONHEART (Лайонхарт): «Даг лжёт.»
+</div>`,
+  ph:'ИМЯ...', btn:'ВЫЧИСЛИТЬ',
+  answers:['DUKE','DUKEWEASELTON'], canon:'DUKE',
+  guideTitle:'[ МОЯ ШПАРГАЛКА ]',
+  guide:`Я пытался думать и чуть не сдох от этого. Делай проще: по очереди допусти, что виноват каждый, и считай, сколько фраз тогда окажутся правдой. Тебе нужен вариант, где правда одна-единственная.`,
+  hint:'Допусти, что виноват Дюк. Его «это не я» — ложь, у Беллуэзер — ложь, у Дага — ложь, а «Даг лжёт» у Лайонхарта — правда. Правда ровно одна. Теперь так же проверь остальных.',
+  ok:'Всё сходится. Виновный найден.',
+  bad:'Не сходится. Где-то ты накосячил с подсчётом.'
+ },
+ {
+  id:'act3', tag:'ЗАМОК',
+  title:'УРОВЕНЬ 3: ЗАМОК ХРАНИЛИЩА',
+  intro:'Чтобы вырубить насосы с сывороткой, нужен пятизначный код. Вирус оставил проверку — вот она. Значок % это остаток от деления, если ты вдруг забыл школу.',
+  body:`<div class="log-box green">
+function validate(pass) {
+    let p = pass.split('').map(Number);
+    if (p.length !== 5)               return false;
+
+    if (p[0] + p[1] !== 13)           return false;
+    if (p[0] * p[1] !== 40)           return false;
+    if (p[0] >= p[1])                 return false;
+
+    if (p[2] !== (p[0] * p[1]) % 7)   return false;
+
+    if (p[3] + p[4] !== 12)           return false;
+    if (p[3] - p[4] !== 4)            return false;
+    return true;
+}
+</div>`,
+  ph:'XXXXX...', btn:'АКТИВИРОВАТЬ',
+  answers:['58584'], canon:'58584',
+  guideTitle:'[ ЧТО ЗА МАТЕМАТИКА? ]',
+  guide:`Я гуманитарий, от этой математики у меня голова раскалывается. Но первые две цифры подбираются легко: перебери пары, которые дают в сумме 13. Остальное считай по формулам сверху вниз.`,
+  hint:'Первые две — 5 и 8 (5+8=13, 5·8=40). Третья — остаток от деления 40 на 7. Последние две: сумма 12, разница 4.',
+  ok:'Код подошёл. Насосы встали.',
+  bad:'Не подошло. Пересчитай, блин.'
+ },
+ {
+  id:'act4', tag:'ВОЙ',
+  title:'УРОВЕНЬ 4: ЧАСТОТА ВОЯ',
+  intro:'Защита ждёт кодовое слово по радио. Сигнал записан точками и тире, это азбука Морзе. Буквы разделены косой чертой. Слово на английском. Можешь послушать запись, но предупреждаю: в динамиках иногда слышно не только писк.',
+  body:`<div class="log-box">
+.--. / .-. / . / -.. / .- / - / --- / .-.
+</div>
+<button class="main-btn" id="morse-btn" onclick="playMorse()" style="margin-bottom:12px;">▶ ПРОСЛУШАТЬ СИГНАЛ</button>`,
+  ph:'СЛОВО...', btn:'ДЕКОДИРОВАТЬ',
+  answers:['PREDATOR'], canon:'PREDATOR',
+  guideTitle:'[ ТАБЛИЦА МОРЗЕ ]',
+  guide:`A .-&nbsp;&nbsp; B -...&nbsp;&nbsp; C -.-.&nbsp;&nbsp; D -..&nbsp;&nbsp; E .&nbsp;&nbsp; F ..-.&nbsp;&nbsp; G --.&nbsp;&nbsp; H ....&nbsp;&nbsp; I ..<br>
+   J .---&nbsp;&nbsp; K -.-&nbsp;&nbsp; L .-..&nbsp;&nbsp; M --&nbsp;&nbsp; N -.&nbsp;&nbsp; O ---&nbsp;&nbsp; P .--.&nbsp;&nbsp; Q --.-&nbsp;&nbsp; R .-.<br>
+   S ...&nbsp;&nbsp; T -&nbsp;&nbsp; U ..-&nbsp;&nbsp; V ...-&nbsp;&nbsp; W .--&nbsp;&nbsp; X -..-&nbsp;&nbsp; Y -.--&nbsp;&nbsp; Z --..`,
+  hint:'Восемь букв, слово про тех, кто охотится. Первая .--. это P, последняя .-. это R.',
+  ok:'Слово принято. Бля, в вентиляции что-то зашевелилось.',
+  bad:'Не то слово.',
+  onSolve(){ enterHorror(); }
+ },
+ {
+  id:'act5', tag:'ШИФР',
+  title:'УРОВЕНЬ 5: ШИФР ЛИСА',
+  intro:'Он уже на нашем этаже, я слышу, как он скребёт когтями по линолеуму, бля. Пакет, который я успел перехватить, зашифрован Виженером. Ключ — имя рыжего пройдохи, который то ли за нас, то ли нет: три буквы, по-английски. Расшифровывай.',
+  body:`<div class="log-box red">
+[ПЕРЕХВАЧЕННЫЙ ПАКЕТ]
+ШИФРТЕКСТ: XOSFUB
+МЕТОД:     ВИЖЕНЕР
+</div>`,
+  ph:'СЛОВО...', btn:'ДЕШИФРОВАТЬ',
+  answers:['SAVAGE'], canon:'SAVAGE',
+  guideTitle:'[ КАК ЭТО РАБОТАЕТ ]',
+  guide:`Каждая буква шифртекста сдвинута вперёд по алфавиту на номер буквы ключа (A=0, B=1, C=2 и так далее). Ключ повторяется по кругу. Чтобы расшифровать, двигай назад. Вылез за A — продолжай с конца алфавита.`,
+  hint:'Ключ FOX: сдвиги 5, 14, 23, потом опять 5, 14, 23. Первая буква: X минус 5 будет S.',
+  ok:'Шифр вскрыт. Он уже за дверью, быстрее.',
+  bad:'Хрень вышла. Проверь ключ и сдвиги.'
+ },
+ {
+  id:'act6', tag:'ПОСЛЕДНЕЕ',
+  title:'УРОВЕНЬ 6: ПОСЛЕДНЕЕ СООБЩЕНИЕ',
+  intro:'Это запись, которую я наговорил, пока ещё соображал. Не уверен, что договорил до конца. Пойми, что я хотел сказать. Ответ — слово на русском.',
+  body:`<div class="log-box">
+[АУДИОЗАПИСЬ №13, ПОВРЕЖДЕНА]
+«…она лежит у неё в кармане… оранжевая… хрустит, сука…»
+«…диктофон записал слово… я прочитал его не с того конца, идиот…»
+ЗАПИСАНО: ЬВОКРОМ
+</div>`,
+  ph:'СЛОВО...', btn:'ВОССТАНОВИТЬ',
+  answers:['МОРКОВЬ'], canon:'МОРКОВЬ',
+  guideTitle:'[ ЗАМЕТКА ]',
+  guide:`Иногда то, что выглядит как бред, просто надо прочитать с конца.`,
+  hint:'Прочитай ЬВОКРОМ справа налево, буква за буквой.',
+  ok:'Запись восстановлена. Ядро вируса проснулось, пиздец.',
+  bad:'Не то слово.'
+ }
+];
+const BOSS_KEY = 'SERUM';
+
+// ===================== ЗВУК =====================
+const bgMusic = new Audio('music.mp3');
+bgMusic.loop = true;
+bgMusic.volume = 0.4;
+const jumpscareSound = new Audio('jumpscare.mp3');
+let jumpscareBroken = false;
+jumpscareSound.addEventListener('error', () => { jumpscareBroken = true; });
+
+let audioCtx = null, master = null;
+let heartTimer = null;
+let isAudioStarted = false;
+let muted = false;
+let droneNodes = null;
+
+function initAudio(){
+  if(isAudioStarted) return;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    master = audioCtx.createGain();
+    master.gain.value = 1;
+    master.connect(audioCtx.destination);
+    isAudioStarted = true;
+    startHeartbeat();
+  }catch(e){}
+}
+
+function tone(f, d, type='sine', v=0.1, f2=null, delay=0){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime + delay;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f, t);
+  if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+  g.gain.setValueAtTime(v, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + d);
+  o.connect(g); g.connect(master);
+  o.start(t); o.stop(t + d + 0.02);
+}
+
+function noise(d, v, freq, q, delay=0){
+  if(!audioCtx) return;
+  const len = Math.max(1, Math.floor(audioCtx.sampleRate * d));
+  const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for(let i=0;i<len;i++) data[i] = Math.random()*2-1;
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  const filt = audioCtx.createBiquadFilter();
+  filt.type = 'bandpass'; filt.frequency.value = freq; filt.Q.value = q;
+  const g = audioCtx.createGain();
+  const t = audioCtx.currentTime + delay;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(v, t + d*0.3);
+  g.gain.linearRampToValueAtTime(0.0001, t + d);
+  src.connect(filt); filt.connect(g); g.connect(master);
+  src.start(t);
+}
+
+function playErrorSound(){ tone(150,0.4,'sawtooth',0.15,40); }
+function playSuccessSound(){ tone(800,0.2,'sine',0.1,1200); }
+function playHitSound(){ tone(300,0.1,'square',0.08,100); }
+function playHorrorSound(){ tone(100,1.5,'square',0.2,20); noise(1.2,0.2,300,1); }
+function playWhisper(){
+  if(!audioCtx) return;
+  const n = 3 + Math.floor(Math.random()*3);
+  for(let i=0;i<n;i++) noise(0.25 + Math.random()*0.2, 0.18, 900 + Math.random()*1800, 6, i*0.28);
+}
+function fallbackScream(){
+  tone(900,0.9,'sawtooth',0.35,200);
+  tone(1300,0.9,'square',0.2,300);
+  noise(1.0,0.6,1500,0.7);
+}
+
+function startHeartbeat(){
+  if(heartTimer) clearTimeout(heartTimer);
+  function beat(){
+    if(gameOver || won || !audioCtx) return;
+    const timeRatio = Math.max(0, timeLeft) / TOTAL_TIME;
+    const bpm = 58 + (1 - timeRatio) * 55 + sanity * 0.5;
+    tone(60,0.15,'sine',0.15);
+    tone(50,0.15,'sine',0.1,null,0.2);
+    heartTimer = setTimeout(beat, (60 / bpm) * 1000);
+  }
+  beat();
+}
+
+function startDrone(){
+  if(!audioCtx || droneNodes) return;
+  const g = audioCtx.createGain();
+  g.gain.value = 0.05;
+  g.connect(master);
+  const o1 = audioCtx.createOscillator(); o1.type='sine'; o1.frequency.value = 38;
+  const o2 = audioCtx.createOscillator(); o2.type='sine'; o2.frequency.value = 40.6;
+  o1.connect(g); o2.connect(g);
+  o1.start(); o2.start();
+  droneNodes = {o1,o2,g};
+}
+function stopDrone(){
+  if(!droneNodes) return;
+  try{ droneNodes.o1.stop(); droneNodes.o2.stop(); }catch(e){}
+  droneNodes = null;
+}
+
+let morsePlaying = false;
+function playMorse(){
+  if(morsePlaying || !audioCtx) return;
+  morsePlaying = true;
+  const btn = document.getElementById('morse-btn');
+  if(btn) btn.disabled = true;
+  const code = '.--. / .-. / . / -.. / .- / - / --- / .-.';
+  const U = 0.09; let t = 0;
+  for(const ch of code){
+    if(ch === '.'){ morseBeep(t, U); t += U*2; }
+    else if(ch === '-'){ morseBeep(t, U*3); t += U*4; }
+    else if(ch === '/'){ t += U*3; }
+    else { t += U; }
+  }
+  setTimeout(()=>{ if(!gameOver) playWhisper(); }, Math.floor(t*600));
+  setTimeout(()=>{ morsePlaying = false; const b=document.getElementById('morse-btn'); if(b) b.disabled=false; }, t*1000 + 300);
+}
+function morseBeep(delay, d){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime + delay;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = 'sine'; o.frequency.value = 650;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.16, t + 0.01);
+  g.gain.setValueAtTime(0.16, t + d - 0.01);
+  g.gain.linearRampToValueAtTime(0.0001, t + d);
+  o.connect(g); g.connect(master);
+  o.start(t); o.stop(t + d + 0.02);
+}
+
+function toggleMute(){
+  muted = !muted;
+  bgMusic.muted = muted;
+  jumpscareSound.muted = muted;
+  if(master) master.gain.value = muted ? 0 : 1;
+  document.getElementById('mute-btn').textContent = muted ? '✕' : '♪';
+}
+
+// ===================== ОСНОВНОЕ СОСТОЯНИЕ =====================
+const TOTAL_TIME = 45 * 60;
+let timeLeft = TOTAL_TIME;
+let sanity = 0;
+let gameOver = false;
+let won = false;
+let started = false;
+let calmMode = false;
+let timerId = null, hallId = null, creepId = null;
+
+const $ = (s) => document.querySelector(s);
+const rnd = (a) => a[Math.floor(Math.random()*a.length)];
+
+function norm(v){ return v.toUpperCase().replace(/[^A-ZА-Я0-9]/g, ""); }
+
+function setMsg(id, text, ok){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = text;
+  el.className = "msg " + (ok ? "ok" : "bad");
+}
+
+function solveStep(panelId){
+  const el = document.getElementById(panelId);
+  el.classList.add("solved");
+  el.querySelectorAll('input, button').forEach(i => i.disabled = true);
+}
+
+function unlock(id){
+  const el = document.getElementById(id);
+  el.classList.remove("locked");
+  setTimeout(() => el.scrollIntoView({behavior:"smooth", block:"center"}), 200);
+}
+
+function toggleGuide(i){
+  const el = document.getElementById('guide'+i);
+  el.style.display = (el.style.display === "block") ? "none" : "block";
+}
+
+const hintUsed = {};
+function showHint(i){
+  if(gameOver) return;
+  const el = document.getElementById('hint'+i);
+  if(!hintUsed[i]){
+    hintUsed[i] = true;
+    setMsg('msg'+i, 'ПОДСКАЗКА ОТКРЫТА [−2:00]', false);
+    applyPenalty(120, 0);
+  }
+  el.style.display = (el.style.display === "block") ? "none" : "block";
+}
+
+// ---- досье
+const SLOT_NAMES = LEVELS.map(l => l.tag).concat(['ЯДРО']);
+const slotValues = {};
+function renderDossier(){
+  const d = $('#dossier');
+  d.innerHTML = '';
+  SLOT_NAMES.forEach((n, i) => {
+    const c = document.createElement('span');
+    c.className = 'chip' + (slotValues[i] ? ' got' : '');
+    c.id = 'chip'+i;
+    c.innerHTML = `<b>${i+1}.${n}</b>${slotValues[i] || '???'}`;
+    d.appendChild(c);
+  });
+}
+function setSlot(i, val){ slotValues[i] = val; renderDossier(); }
+
+// ---- рассудок
+function updateSanityUI(){
+  $('#san-val').textContent = Math.round(sanity) + '%';
+  const f = $('#san-fill');
+  f.style.width = sanity + '%';
+  f.style.background = sanity >= 80 ? '#ff2222' : (sanity >= 50 ? '#ff7700' : '#ffb000');
+  document.documentElement.style.setProperty('--san', (sanity/100).toFixed(2));
+  document.body.classList.toggle('sanity-1', sanity >= 25);
+  document.body.classList.toggle('sanity-2', sanity >= 55);
+  document.body.classList.toggle('sanity-3', sanity >= 80);
+}
+function addSanity(n){
+  if(gameOver || won) return;
+  sanity = Math.min(100, sanity + n);
+  updateSanityUI();
+  if(sanity >= 100) die('sanity');
+}
+
+// ---- штраф
+function applyPenalty(sec = 60, san = 8){
+  if(gameOver || won) return;
+  timeLeft -= sec;
+  playErrorSound();
+  const header = $('#main-header');
+  header.classList.add("glitch-text");
+  document.body.classList.add("flicker");
+  document.body.classList.add("error-pulse");
+  setTimeout(()=>{
+    header.classList.remove("glitch-text");
+    document.body.classList.remove("flicker");
+    document.body.classList.remove("error-pulse");
+  }, 500);
+  if(timeLeft <= 0){
+    timeLeft = 0;
+    updateTimerDisplay();
+    die('time');
+    return;
+  }
+  updateTimerDisplay();
+  if(san) addSanity(san);
+}
+
+// ---- уровни
+function renderLevels(){
+  const host = $('#levels');
+  LEVELS.forEach((L, i) => {
+    const sec = document.createElement('section');
+    sec.className = 'panel' + (i ? ' locked' : '');
+    sec.id = L.id;
+    sec.innerHTML = `
+      <h2>${L.title}</h2>
+      <p>${L.intro}</p>
+      ${L.body}
+      <div class="d-flex">
+        <input id="in${i}" placeholder="${L.ph}" autocomplete="off">
+        <button class="main-btn" onclick="checkLevel(${i})">${L.btn}</button>
+      </div>
+      <button class="guide-btn" onclick="toggleGuide(${i})">${L.guideTitle}</button>
+      <button class="guide-btn hint-btn" onclick="showHint(${i})">[ ПОДСКАЗКА −2:00 ]</button>
+      <div class="inline-guide" id="guide${i}">${L.guide}</div>
+      <div class="inline-guide" id="hint${i}">${L.hint}</div>
+      <div class="msg" id="msg${i}"></div>`;
+    host.appendChild(sec);
+    sec.querySelector('input').addEventListener('keydown', e => { if(e.key === 'Enter') checkLevel(i); });
+  });
+}
+
+function checkLevel(i){
+  if(gameOver || won) return;
+  const L = LEVELS[i];
+  const v = norm($('#in'+i).value);
+  if(!v) return;
+  if(L.answers.includes(v)){
+    setMsg('msg'+i, L.ok, true);
+    playSuccessSound();
+    solveStep(L.id);
+    setSlot(i, L.canon);
+    if(L.onSolve) L.onSolve();
+    unlock(i + 1 < LEVELS.length ? LEVELS[i+1].id : 'actBoss');
+  } else {
+    setMsg('msg'+i, L.bad + ' [−1:00] РАССУДОК +8%', false);
+    applyPenalty(60, 8);
+  }
+}
+
+function enterHorror(){
+  playHorrorSound();
+  startDrone();
+  document.body.classList.add("horror-mode");
+}
+
+// ===================== ГАЛЛЮЦИНАЦИИ =====================
+const REAL_ALERTS = ["Давление газа растёт, бля","Камера 13 сдохла","Память утекает","Вирус: доступ запрещён","Токсина дохрена, уровень критический","В коридоре воняет ночными цветами"];
+const FAKE_ALERTS = ["Камера 13: за тобой кто-то стоит","Джуди больше не отвечает по рации","Ник ржёт. Но это не его смех","Слышишь этот вой?","Он уже на твоём этаже","Не оборачивайся","У тебя уже узкие зрачки"];
+const SCARE_PHRASES = ["ОН ЗА ТОБОЙ","НЕ СМОТРИ НАЗАД","ТЫ ТОЖЕ ДИКИЙ","ВОЙ ВОЙ ВОЙ","ЛАПЫ НА ТВОЕЙ ШЕЕ","03:33 03:33 03:33","ТЫ ПАХНЕШЬ ЖИВЫМ"];
+
+function showAlert(text){
+  const c = $('#floating-alerts');
+  const a = document.createElement('div');
+  a.className = 'floating-alert';
+  a.textContent = text;
+  c.appendChild(a);
+  setTimeout(() => a.remove(), 3000);
+}
+function flickerNow(){
+  if(calmMode) return;
+  document.body.classList.add('flicker');
+  setTimeout(()=>document.body.classList.remove('flicker'), 300);
+}
+function scrambleText(){
+  const els = [...document.querySelectorAll('.panel:not(.locked):not(.solved) p, .panel:not(.locked):not(.solved) .log-box')]
+    .filter(e => e.childElementCount === 0 && !e.dataset.scr && e.textContent.trim().length > 10 && !e.closest('#act7') && !e.closest('#timeout'));
+  if(!els.length) return;
+  const el = rnd(els);
+  const orig = el.textContent;
+  el.dataset.scr = '1';
+  let s = '';
+  while(s.length < Math.min(orig.length, 140)) s += rnd(SCARE_PHRASES) + ' ';
+  el.textContent = s.trim();
+  setTimeout(()=>{ el.textContent = orig; delete el.dataset.scr; }, 650);
+}
+function spawnEyes(){
+  const e = document.createElement('div');
+  e.className = 'eyes';
+  e.innerHTML = '<span class="eye"></span><span class="eye"></span>';
+  const side = Math.random();
+  if(side < 0.5){ e.style.left = (Math.random()<0.5 ? 2 : 88) + '%'; e.style.top = (10 + Math.random()*75) + '%'; }
+  else { e.style.top = (Math.random()<0.5 ? 3 : 92) + '%'; e.style.left = (10 + Math.random()*75) + '%'; }
+  document.body.appendChild(e);
+  setTimeout(()=>e.remove(), 1700);
+}
+function hallucinate(){
+  if(gameOver || won || !started) return;
+  const s = sanity, r = Math.random();
+  if(s < 20){
+    if(r < 0.25) showAlert(rnd(REAL_ALERTS));
+    return;
+  }
+  if(r < 0.25) flickerNow();
+  else if(r < 0.45){ if(s >= 40) scrambleText(); else showAlert(rnd(REAL_ALERTS)); }
+  else if(r < 0.65){ showAlert(s >= 55 ? rnd(FAKE_ALERTS) : rnd(REAL_ALERTS)); if(s >= 55) playWhisper(); }
+  else if(r < 0.85){ if(s >= 75) spawnEyes(); }
+  else if(s >= 60){ playWhisper(); }
+}
+
+// ===================== ТАЙМЕР, СМЕРТЬ =====================
+function updateTimerDisplay(){
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  $('#timer').textContent = String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+  if(timeLeft < 300) $('#timer-box').classList.add("danger");
+}
+function tick(){
+  if(gameOver || won) return;
+  timeLeft--;
+  if(timeLeft <= 0){
+    timeLeft = 0;
+    updateTimerDisplay();
+    die('time');
+  } else updateTimerDisplay();
+}
+
+function stopAllLoops(){
+  clearInterval(timerId); clearInterval(hallId); clearInterval(creepId);
+  clearTimeout(heartTimer);
+  stopDrone();
+  stopBossAll();
+}
+
+function die(cause){
+  if(gameOver || won) return;
+  gameOver = true;
+  stopAllLoops();
+  bgMusic.pause();
+  $('#timer').textContent = cause === 'time' ? '00:00' : $('#timer').textContent;
+  $('#scare-text').textContent = cause === 'time' ? 'ВРЕМЯ ВЫШЛО' : 'ТЫ СТАЛ ДИКИМ';
+  $('#death-text').textContent = cause === 'time'
+    ? 'Воздух кончился. Клапаны открылись на полную. Пахнет цветами, слишком сладко, до тошноты. Зрачки сужаются в щели, пальцы скрючиваются на клавишах. Последнее, что ты слышишь, — свой собственный вой.'
+    : 'Голоса в вентиляции стали громче твоих мыслей. Ты уже не помнишь, где Ник, а где ты сам. Ты улыбаешься, а зубы острее, чем были.';
+  jumpscareSound.currentTime = 0;
+  jumpscareSound.volume = 0.9;
+  const pr = jumpscareSound.play();
+  if(pr && pr.catch) pr.catch(() => fallbackScream());
+  if(jumpscareBroken) fallbackScream();
+  $('#scare').classList.add('show');
+  setTimeout(() => {
+    $('#scare').classList.remove('show');
+    const t = $('#timeout');
+    t.style.display = 'block';
+    t.scrollIntoView({behavior:'smooth'});
+  }, 2300);
+}
+
+// ===================== БОСС =====================
+let bossActive = false, phaseLocked = false;
+let bossHP = 100, playerHP = 100, currentPhase = 0;
+let bossFrag = '';
+let pTimers = [], pIntervals = [], pRAF = null;
+let popupLoop = null, popupEl = null, popupTimeout = null;
+
+const arenaEl = () => document.getElementById('boss-arena');
+const phaseMsg = (t) => { const m = document.getElementById('msgPhase'); if(m) m.textContent = t; };
+function bT(fn, ms){ const id = setTimeout(fn, ms); pTimers.push(id); return id; }
+function bI(fn, ms){ const id = setInterval(fn, ms); pIntervals.push(id); return id; }
+function clearPhaseTimers(){
+  pTimers.forEach(clearTimeout); pIntervals.forEach(clearInterval);
+  pTimers = []; pIntervals = [];
+  if(pRAF){ cancelAnimationFrame(pRAF); pRAF = null; }
+}
+function stopPopups(){
+  clearInterval(popupLoop); popupLoop = null;
+  clearTimeout(popupTimeout); popupTimeout = null;
+  if(popupEl){ popupEl.remove(); popupEl = null; }
+}
+function stopBossAll(){
+  bossActive = false;
+  clearPhaseTimers();
+  stopPopups();
+}
+
+function renderFrags(){
+  const box = document.getElementById('frag-slots');
+  box.innerHTML = '';
+  for(let i=0;i<BOSS_KEY.length;i++){
+    const s = document.createElement('div');
+    s.className = 'frag' + (i < bossFrag.length ? ' on' : '');
+    s.textContent = i < bossFrag.length ? bossFrag[i] : '?';
+    box.appendChild(s);
+  }
+}
+function updateBossUI(){
+  document.getElementById("boss-hp").style.width = Math.max(0, bossHP) + "%";
+  document.getElementById("player-hp").style.width = Math.max(0, playerHP) + "%";
+}
+
+function startBossFight(){
+  if(gameOver || won) return;
+  stopBossAll();
+  bossHP = 100; playerHP = 100; bossFrag = '';
+  phaseLocked = false; bossActive = true;
+  renderFrags(); updateBossUI();
+  startPopups();
+  startPhase(1);
+}
+
+const PHASES = [null, p1, p2, p3, p4, p5];
+function startPhase(n){
+  clearPhaseTimers();
+  currentPhase = n;
+  phaseLocked = false;
+  bossHP = 100 - (n-1)*20;
+  updateBossUI();
+  PHASES[n]();
+}
+
+function bossDamage(amount){
+  if(!bossActive) return;
+  playerHP -= amount;
+  playErrorSound();
+  updateBossUI();
+  const a = arenaEl();
+  a.classList.remove('hit'); void a.offsetWidth; a.classList.add('hit');
+  addSanity(1);
+  if(playerHP <= 0) endBossFight(false);
+}
+
+function phaseDone(){
+  if(!bossActive || phaseLocked) return;
+  phaseLocked = true;
+  clearPhaseTimers();
+  const letter = BOSS_KEY[currentPhase-1];
+  bossFrag += letter;
+  renderFrags();
+  setSlot(6, bossFrag + '_'.repeat(BOSS_KEY.length - bossFrag.length));
+  bossHP = 100 - currentPhase*20;
+  updateBossUI();
+  playSuccessSound();
+  phaseMsg(`СЕКТОР ВЗЛОМАН. БУКВА КЛЮЧА: ${letter}`);
+  bT(() => { currentPhase >= 5 ? endBossFight(true) : startPhase(currentPhase + 1); }, 1500);
+}
+
+// --- Сектор 1: ПАМЯТЬ ---
+let seq = [], seqIdx = 0, memStage = 1, memPlayback = false;
+function p1(){ memStage = 1; p1setup(); }
+function p1setup(){
+  arenaEl().innerHTML = `
+    <div class="phase-title">СЕКТОР 1/5: ПАМЯТЬ [${memStage}/3]</div>
+    <div class="phase-desc">Запомни ${memStage+3} вспышек и повтори в том же порядке. Ошибка: −20 HP.</div>
+    <div id="grid-memory"></div>
+    <div class="msg" id="msgPhase" style="text-align:center;"></div>`;
+  const grid = document.getElementById('grid-memory');
+  for(let i=0;i<16;i++){
+    const c = document.createElement('div');
+    c.className = 'grid-cell'; c.dataset.id = i;
+    c.onclick = () => memClick(i);
+    grid.appendChild(c);
+  }
+  seq = [];
+  const len = memStage + 3;
+  while(seq.length < len){
+    const x = Math.floor(Math.random()*16);
+    if(seq.length === 0 || seq[seq.length-1] !== x) seq.push(x);
+  }
+  memPlayback = true; seqIdx = 0;
+  bT(playSeq, 900);
+}
+function playSeq(){
+  phaseMsg('СМОТРИ...');
+  let i = 0;
+  const speed = 420 - memStage*50;
+  (function next(){
+    if(!bossActive || currentPhase !== 1) return;
+    if(i >= seq.length){ memPlayback = false; seqIdx = 0; phaseMsg('ПОВТОРЯЙ!'); return; }
+    const c = document.querySelector(`.grid-cell[data-id="${seq[i]}"]`);
+    if(!c) return;
+    c.classList.add('active'); playHitSound();
+    bT(() => { c.classList.remove('active'); i++; bT(next, 180); }, speed);
+  })();
+}
+function memClick(id){
+  if(!bossActive || phaseLocked || memPlayback || currentPhase !== 1) return;
+  const c = document.querySelector(`.grid-cell[data-id="${id}"]`);
+  if(c){ c.classList.add('active'); setTimeout(() => c.classList.remove('active'), 180); }
+  if(id === seq[seqIdx]){
+    playSuccessSound();
+    seqIdx++;
+    if(seqIdx >= seq.length){
+      if(memStage < 3){
+        phaseMsg('ЭТАП ПРОЙДЕН.');
+        memStage++; memPlayback = true;
+        bT(p1setup, 900);
+      } else phaseDone();
+    }
+  } else {
+    phaseMsg('ОШИБКА!');
+    memPlayback = true;
+    bossDamage(20);
+    if(bossActive) bT(p1setup, 1000);
+  }
+}
+
+// --- Сектор 2: ДЕФРАГМЕНТАЦИЯ ---
+let numNext = 1, numClicks = 0;
+function p2(){
+  arenaEl().innerHTML = `
+    <div class="phase-title">СЕКТОР 2/5: ДЕФРАГМЕНТАЦИЯ</div>
+    <div class="phase-desc">Нажимай числа от 1 до 16 по возрастанию. Каждые 4 верных нажатия поле перестраивается. Ошибка: −15 HP и перестройка.</div>
+    <div id="num-grid"></div>
+    <div class="msg" id="msgPhase" style="text-align:center;"></div>`;
+  numNext = 1; numClicks = 0;
+  renderNums();
+}
+function renderNums(){
+  const g = document.getElementById('num-grid');
+  g.innerHTML = '';
+  const slots = Array(16).fill(null);
+  const free = [...Array(16).keys()].sort(() => Math.random() - 0.5);
+  let k = 0;
+  for(let n = numNext; n <= 16; n++) slots[free[k++]] = n;
+  slots.forEach(n => {
+    const b = document.createElement('div');
+    if(n === null){ b.className = 'num-btn empty'; }
+    else {
+      b.className = 'num-btn'; b.textContent = n;
+      b.onclick = () => numClick(n, b);
+    }
+    g.appendChild(b);
+  });
+}
+function numClick(n, btn){
+  if(!bossActive || phaseLocked || currentPhase !== 2) return;
+  if(n === numNext){
+    playSuccessSound();
+    btn.className = 'num-btn empty';
+    numNext++; numClicks++;
+    if(numNext > 16) phaseDone();
+    else if(numClicks % 4 === 0){ phaseMsg('ПЕРЕСТРОЙКА!'); renderNums(); }
+  } else {
+    phaseMsg('СБОЙ! НЕВЕРНЫЙ ПОРЯДОК.');
+    bossDamage(15);
+    if(bossActive && !phaseLocked) renderNums();
+  }
+}
+
+// --- Сектор 3: ПЕРЕХВАТ ПАКЕТОВ ---
+let packetsHit = 0;
+let activePackets = [];
+function p3(){
+  packetsHit = 0;
+  activePackets = [];
+  arenaEl().innerHTML = `
+    <div class="phase-title">СЕКТОР 3/5: ПЕРЕХВАТ ПАКЕТОВ</div>
+    <div class="phase-desc">Кликай на падающие пакеты с IP <b style="color:var(--green)">192.168.0.13</b>. Нужно 5 перехватов.<br>Ошибка или пропуск цели: −20 HP.</div>
+    <div id="packet-arena"></div>
+    <div class="msg" id="msgPhase" style="text-align:center;"></div>`;
+    
+  bI(spawnPacket, 800);
+  bI(movePackets, 30);
+}
+
+function spawnPacket(){
+  if(!bossActive || phaseLocked || currentPhase !== 3) return;
+  const arena = document.getElementById('packet-arena');
+  if(!arena) return;
+  
+  const isTarget = Math.random() < 0.35;
+  const p = document.createElement('div');
+  p.className = 'packet ' + (isTarget ? 'target' : 'fake');
+  p.style.left = (Math.random() * 80 + 5) + '%';
+  p.style.top = '-30px';
+  p.textContent = isTarget ? '192.168.0.13' : `192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+  
+  p.onclick = () => {
+    if(!bossActive || phaseLocked || currentPhase !== 3) return;
+    if(isTarget){
+      playSuccessSound();
+      packetsHit++;
+      phaseMsg(`ПЕРЕХВАТ: ${packetsHit}/5`);
+      p.remove();
+      if(packetsHit >= 5) phaseDone();
+    } else {
+      phaseMsg('НЕВЕРНЫЙ IP!');
+      bossDamage(20);
+      p.remove();
+    }
+  };
+
+  arena.appendChild(p);
+  activePackets.push({ el: p, y: -30, speed: 4 + Math.random() * 4, isTarget });
+}
+
+function movePackets(){
+  if(!bossActive || phaseLocked || currentPhase !== 3) return;
+  const arena = document.getElementById('packet-arena');
+  if(!arena) return;
+  
+  for(let i = activePackets.length - 1; i >= 0; i--){
+    const p = activePackets[i];
+    if(!document.body.contains(p.el)){ activePackets.splice(i, 1); continue; }
+    
+    p.y += p.speed;
+    p.el.style.top = p.y + 'px';
+    
+    if(p.y > 280){
+      p.el.remove();
+      activePackets.splice(i, 1);
+      if(p.isTarget){
+        phaseMsg('ПАКЕТ УПУЩЕН!');
+        bossDamage(20);
+      }
+    }
+  }
+}
+
+// --- Сектор 4: ДЕШИФРОВКА ---
+let qRound = 1, qCode = '', qExpect = '', qTime = 0, qMax = 0, qInt = null, qBusy = false;
+const Q_TIME = [5, 4.5, 4];
+function p4(){ qRound = 1; p4round(); }
+function p4round(){
+  clearInterval(qInt);
+  qBusy = false;
+  if(!bossActive || currentPhase !== 4) return;
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  qCode = '';
+  for(let i=0;i<5;i++) qCode += chars[Math.floor(Math.random()*chars.length)];
+  const rev = qRound >= 2;
+  qExpect = rev ? qCode.split('').reverse().join('') : qCode;
+  arenaEl().innerHTML = `
+    <div class="phase-title">СЕКТОР 4/5: ДЕШИФРОВКА [${qRound}/3]</div>
+    <div class="phase-desc">${rev ? 'Введи код <b style="color:#fff">НАОБОРОТ</b> (последняя буква первой)' : 'Введи код как он написан'} до того, как упадёт таймер. Ошибка или просрочка: −25 HP.</div>
+    <div id="qte-input-container">
+      <div id="qte-target">${qCode}</div>
+      <input type="text" id="qte-field" style="text-align:center; font-size:24px;" autocomplete="off" maxlength="6">
+      <button class="main-btn" onclick="checkQTE()">ПОДТВЕРДИТЬ</button>
+      <div id="qte-timer-bar"><div id="qte-timer-fill"></div></div>
+    </div>
+    <div class="msg" id="msgPhase" style="text-align:center;"></div>`;
+  const field = document.getElementById('qte-field');
+  field.addEventListener('keydown', e => { if(e.key === 'Enter') checkQTE(); });
+  field.focus();
+  qMax = Q_TIME[qRound-1]; qTime = qMax;
+  const fill = document.getElementById('qte-timer-fill');
+  qInt = bI(() => {
+    if(!bossActive || currentPhase !== 4 || qBusy) return;
+    qTime -= 0.1;
+    if(fill) fill.style.width = Math.max(0, qTime / qMax * 100) + '%';
+    if(qTime <= 0){
+      qBusy = true; clearInterval(qInt);
+      phaseMsg('ВРЕМЯ ВЫШЛО!');
+      bossDamage(25);
+      if(bossActive) bT(p4round, 800);
+    }
+  }, 100);
+}
+function checkQTE(){
+  if(!bossActive || phaseLocked || currentPhase !== 4 || qBusy) return;
+  const val = document.getElementById('qte-field').value.toUpperCase().trim();
+  qBusy = true; clearInterval(qInt);
+  if(val === qExpect){
+    playSuccessSound();
+    if(qRound >= 3) phaseDone();
+    else { phaseMsg('КОД ПРИНЯТ.'); qRound++; bT(p4round, 800); }
+  } else {
+    phaseMsg('НЕВЕРНЫЙ КОД!');
+    bossDamage(25);
+    if(bossActive) bT(p4round, 800);
+  }
+}
+
+// --- Сектор 5: РЕЗОНАНС ---
+let cVal = 0, cHits = 0, cOn = false, cZone = {l:60, w:14}, cInt = null;
+const C_WIDTH = [14, 11, 8];
+function p5(){
+  arenaEl().innerHTML = `
+    <div class="phase-title">СЕКТОР 5/5: РЕЗОНАНС ЯДРА</div>
+    <div class="phase-desc">Зажми кнопку: шкала заряжается. Отпусти, когда она в зелёной зоне. Нужно 3 раза, зона каждый раз другая. Перегруз: −30 HP, мимо: −20 HP.</div>
+    <div id="charge-track"><div id="charge-zone"></div><div id="charge-bar"></div></div>
+    <button id="charge-btn">ЗАЖАТЬ</button>
+    <div class="msg" id="msgPhase" style="text-align:center; margin-top:20px;"></div>`;
+  cHits = 0; cOn = false; cVal = 0;
+  newChargeZone();
+  const btn = document.getElementById('charge-btn');
+  btn.onpointerdown = (e) => {
+    e.preventDefault();
+    if(!bossActive || phaseLocked || currentPhase !== 5 || cOn) return;
+    cOn = true; cVal = 0;
+    try{ btn.setPointerCapture(e.pointerId); }catch(err){}
+    btn.textContent = 'ЗАРЯЖАЮ...';
+    clearInterval(cInt);
+    cInt = bI(() => {
+      if(!cOn) return;
+      cVal += 1.4;
+      const bar = document.getElementById('charge-bar');
+      if(cVal >= 100){
+        cOn = false; clearInterval(cInt);
+        if(bar) bar.style.width = '100%';
+        phaseMsg('ПЕРЕГРУЗКА!');
+        bossDamage(30);
+        if(bossActive) bT(resetCharge, 900);
+      } else if(bar) bar.style.width = cVal + '%';
+    }, 25);
+  };
+  window.addEventListener('pointerup', chargeRelease);
+  window.addEventListener('pointercancel', chargeRelease);
+}
+function newChargeZone(){
+  const w = C_WIDTH[cHits];
+  const l = 45 + Math.random() * (50 - w);
+  cZone = {l, w};
+  const z = document.getElementById('charge-zone');
+  z.style.left = l + '%'; z.style.width = w + '%';
+}
+function resetCharge(){
+  cVal = 0; cOn = false;
+  const bar = document.getElementById('charge-bar'); if(bar) bar.style.width = '0%';
+  const btn = document.getElementById('charge-btn'); if(btn) btn.textContent = 'ЗАЖАТЬ';
+}
+function chargeRelease(){
+  if(!cOn) return;
+  cOn = false; clearInterval(cInt);
+  if(!bossActive || phaseLocked || currentPhase !== 5) return;
+  const v = cVal;
+  if(v >= cZone.l && v <= cZone.l + cZone.w){
+    playSuccessSound();
+    cHits++;
+    phaseMsg(`РЕЗОНАНС! (${cHits}/3)`);
+    if(cHits >= 3){ resetCharge(); phaseDone(); }
+    else { newChargeZone(); resetCharge(); }
+  } else if(v > 3){
+    phaseMsg('МИМО!');
+    bossDamage(20);
+    resetCharge();
+  } else resetCharge();
+}
+
+// --- окна-ловушки ---
+const POPUP_TEXTS = ['ОН СМОТРИТ НА ТЕБЯ','НЕ ЗАКРЫВАЙ ГЛАЗА','ЗАКРОЙ МЕНЯ!','ОНО УЖЕ ВНУТРИ'];
+function startPopups(){
+  stopPopups();
+  popupLoop = setInterval(() => {
+    if(!bossActive || popupEl || phaseLocked) return;
+    if(Math.random() < 0.7) spawnPopup();
+  }, 8500);
+}
+function spawnPopup(){
+  const a = arenaEl();
+  const p = document.createElement('div');
+  p.className = 'popup';
+  p.style.left = (12 + Math.random()*55) + '%';
+  p.style.top = (12 + Math.random()*55) + '%';
+  p.innerHTML = `<div>${rnd(POPUP_TEXTS)}</div><button class="main-btn" style="padding:6px 16px;">ЗАКРЫТЬ</button>`;
+  p.querySelector('button').onclick = () => {
+    clearTimeout(popupTimeout);
+    p.remove(); popupEl = null;
+    playSuccessSound();
+  };
+  a.appendChild(p);
+  popupEl = p;
+  playWhisper();
+  popupTimeout = setTimeout(() => {
+    if(popupEl === p){ p.remove(); popupEl = null; bossDamage(10); }
+  }, 2300);
+}
+
+function endBossFight(win){
+  stopBossAll();
+  window.removeEventListener('pointerup', chargeRelease);
+  window.removeEventListener('pointercancel', chargeRelease);
+  if(win){
+    arenaEl().innerHTML = `<h2 style="color:var(--green);">ЯДРО УНИЧТОЖЕНО</h2><p>Ключ ядра: <b style="color:#fff; letter-spacing:4px;">${BOSS_KEY}</b></p>`;
+    setSlot(6, BOSS_KEY);
+    playSuccessSound();
+    document.getElementById('boss-hp').style.width = '0%';
+    solveStep("actBoss");
+    setTimeout(() => unlock("act7"), 1500);
+  } else {
+    arenaEl().innerHTML = `
+      <h2 style="color:var(--red);">СБОЙ СИСТЕМЫ</h2>
+      <p>Защита терминала пала. Вирус смеётся. [−1:00] РАССУДОК +10%</p>
+      <button class="main-btn" onclick="startBossFight()" style="margin-top:20px;">ПОПРОБОВАТЬ СНОВА</button>`;
+    setSlot(6, null);
+    applyPenalty(60, 10);
+  }
+}
+
+// ===================== ФИНАЛ =====================
+const FINAL_PARTS = () => [BOSS_KEY].concat(LEVELS.map(l => l.canon).reverse());
+function checkFinal(){
+  if(gameOver || won) return;
+  const v = norm($("#inFinal").value);
+  if(!v) return;
+  const expected = FINAL_PARTS().map(norm).join('');
+  if(v === expected){
+    won = true;
+    stopAllLoops();
+    setMsg("msgFinal", "СИСТЕМА ОСТАНОВЛЕНА.", true);
+    playSuccessSound();
+    $("#goodEnd").style.display = "block";
+    $("#inFinal").disabled = true;
+    $("#finalBtn").disabled = true;
+    bgMusic.pause();
+    document.body.classList.remove("horror-mode");
+    document.body.classList.remove("sanity-3");
+    $("#timer-box").classList.remove("danger");
+    updateTimerDisplay();
+    setTimeout(()=>$("#goodEnd").scrollIntoView({behavior:"smooth"}), 200);
+    setTimeout(()=>{ $("#ps").style.display = 'block'; playWhisper(); }, 6500);
+  } else {
+    setMsg("msgFinal", "ОШИБКА ДОСТУПА. ПРОВЕРЬ ПОРЯДОК. [−1:00] РАССУДОК +8%", false);
+    applyPenalty(60, 8);
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const f = document.getElementById('inFinal');
+  if(f) f.addEventListener('keydown', e => { if(e.key === 'Enter') checkFinal(); });
+});
+
+// ===================== СТАРТ =====================
+function startGame(){
+  if(started) return;
+  started = true;
+  calmMode = document.getElementById('calm-toggle').checked;
+  document.body.classList.toggle('calm', calmMode);
+  initAudio();
+  bgMusic.play().catch(()=>{});
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('game-container').style.display = 'block';
+  updateTimerDisplay();
+  updateSanityUI();
+  timerId = setInterval(tick, 1000);
+  hallId = setInterval(hallucinate, 5000);
+  creepId = setInterval(() => addSanity(1), 90000);
+}
+
+renderLevels();
+renderDossier();
+</script>
+</body>
+</html>
